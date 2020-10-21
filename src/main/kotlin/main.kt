@@ -16,10 +16,7 @@ class SimpleRNG(
 }
 
 fun main() {
-    rngTester(nonNegativeInt)
-    rngTester(nonNegativeEven)
-    rngTester(randomDouble)
-    rngTester(gorgeousRandomDouble)
+    curryTest()
 }
 
 val nonNegativeInt: Rand<Int> = { rng ->
@@ -83,3 +80,51 @@ fun <A, B> both(ra: Rand<A>, rb: Rand<B>): Rand<Pair<A,B>> = map2(ra, rb) { a, b
 //}
 
 //fun ints(count: Int): Rand<List<Int>> = sequence(List.fill(count)(int))
+
+fun <A, B, C> curry(f: (A, B) -> C): (A) -> ((B) -> C) =
+        { a ->
+            { b -> f(a,b) }
+        }
+
+fun curryTest() {
+    val f: (Int, Int) -> String = { a, b -> a.toString().plus(b.toString()) }
+    val a = 123
+    val b = 456
+
+    // naive use of f
+    println(f(a, b))
+
+    // use of curried f
+    println(curry(f)(a)(b))
+
+    // advantage of currying function example
+    val fixedPrefixFunction = curry(f)(123)
+
+    println(fixedPrefixFunction(456))
+}
+
+fun <A, B, C> uncurry(f: (A) -> ((B) -> C)): (A, B) -> C =
+        { a, b ->
+            f(a)(b)
+        }
+
+fun <A, B, C> compose(f: (B) -> C, g: (A) -> B): (A) -> C = { f(g(it)) }
+
+fun sum(ints: List<Int>): Int {
+    return if (ints.isEmpty()) 0
+    else ints[0] + sum(ints.subList(1, ints.size))
+}
+
+fun product(ds: List<Double>): Double {
+    return if (ds.isEmpty()) 1.0
+    else ds[0] * product(ds.subList(1, ds.size))
+}
+
+fun <A, B> foldRight(aSeq: List<A>, z: B, f: (A, B) -> B): B {
+    return if (aSeq.isEmpty()) z
+    else f(aSeq[0], foldRight(aSeq.subList(1, aSeq.size), z, f))
+}
+
+fun sum2(ints: List<Int>): Int = foldRight(ints, 0, {a, b -> a + b})
+
+fun product2(ds: List<Double>): Double = foldRight(ds, 1.0, {a, b -> a * b})
