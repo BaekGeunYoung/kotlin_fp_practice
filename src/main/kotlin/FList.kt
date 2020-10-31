@@ -1,6 +1,8 @@
-import kotlin.time.seconds
+sealed class FList<out A> {
+    companion object {
 
-sealed class FList<out A>
+    }
+}
 
 object Nil : FList<Nothing>()
 
@@ -20,34 +22,6 @@ fun sum3(ints: FList<Int>): Int = foldRight(ints, 0, {a, b -> a + b})
 
 fun <A> length(aSeq: FList<A>): Int = foldRight(aSeq, 0, {_, b -> b + 1})
 
-fun main() {
-    val ints1 = Cons(1, Cons(2, Cons(3, Cons(4, Nil))))
-    val ints2 = Cons(1, Cons(2, Cons(3, Cons(4, Nil))))
-    println(ints1)
-    println(ints2)
-    println(append(ints1, ints2))
-
-    val intss: FList<FList<Int>> = Cons(ints1, Cons(ints2, Nil))
-
-    println(intss)
-    println(flatten(intss))
-
-    println(plusOne(ints1))
-
-    println(map(ints1) { it * 10 })
-
-    println(map(ints1) { Cons(it + 1, Cons(it + 2, Cons(it + 3, Nil))) })
-
-    val flatMapInts = flatMap(ints1) { Cons(it + 1, Cons(it + 2, Cons(it + 3, Nil))) }
-    println(flatMapInts)
-
-    println(filter(flatMapInts) { it % 2 == 0 })
-
-    println(index(flatMapInts))
-
-    println(zipInt(ints1, ints2))
-    println(zipInt2(ints1, ints2))
-}
 
 fun <A, B> foldLeft(aSeq: FList<A>, z: B, f: (B, A) -> B): B =
         when (aSeq) {
@@ -95,4 +69,33 @@ fun zipInt2(ints1: FList<Int>, ints2: FList<Int>): FList<Int> {
         }
         is Nil -> Nil
     }
+}
+
+fun main() {
+    val ints1 = Cons(1, Cons(2, Cons(3, Cons(4, Nil))))
+    val ints2 = Cons(1, Cons(2, Cons(3, Cons(4, Nil))))
+    println(ints1)
+    println(ints2)
+    println(append(ints1, ints2))
+
+    val intss: FList<FList<Int>> = Cons(ints1, Cons(ints2, Nil))
+
+    println(intss)
+    println(flatten(intss))
+
+    println(plusOne(ints1))
+
+    println(map(ints1) { it * 10 })
+
+    println(map(ints1) { Cons(it + 1, Cons(it + 2, Cons(it + 3, Nil))) })
+
+    val flatMapInts = flatMap(ints1) { Cons(it + 1, Cons(it + 2, Cons(it + 3, Nil))) }
+    println(flatMapInts)
+
+    println(filter(flatMapInts) { it % 2 == 0 })
+
+    println(index(flatMapInts))
+
+    println(zipInt(ints1, ints2))
+    println(zipInt2(ints1, ints2))
 }

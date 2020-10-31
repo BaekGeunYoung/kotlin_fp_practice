@@ -71,7 +71,7 @@ fun <A, B> both(ra: Rand<A>, rb: Rand<B>): Rand<Pair<A,B>> = map2(ra, rb) { a, b
 //    }
 //    else return {
 //        rs.foldRight(listOf<A>()) { t, acc ->
-//            map2(t, acc) {}
+//            paralellism.map2(t, acc) {}
 //        }
 //        val a: List<A> = rs.map { rand -> rand(it).first }
 //        val b: List<RNG> = rs.map { rand -> rand(it).second }
