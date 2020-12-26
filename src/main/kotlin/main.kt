@@ -1,13 +1,14 @@
 import kotlin.math.abs
 
 interface RNG {
-    fun nextInt(): Pair<Int, RNG>
+    fun next(): Pair<Int, RNG>
 }
+
 
 class SimpleRNG(
     private val seed: Long
 ): RNG {
-    override fun nextInt(): Pair<Int, RNG> {
+    override fun next(): Pair<Int, RNG> {
         val newSeed = (seed * 0x5DEECE66DL + 0xBL) and 0xFFFFFFFFFFFFL
         val nextRNG = SimpleRNG(newSeed)
         val n = (newSeed shr 16).toInt()
@@ -16,20 +17,45 @@ class SimpleRNG(
 }
 
 fun main() {
-    curryTest()
+    var rng: RNG = SimpleRNG(System.currentTimeMillis())
+
+    repeat(100) {
+        println(gorgeousRandomDouble(rng).first)
+        rng = gorgeousRandomDouble(rng).second
+    }
 }
 
 val nonNegativeInt: Rand<Int> = { rng ->
-    val (number, nextRng) = rng.nextInt()
+    val (number, nextRng) = rng.next()
     Pair(abs(number), nextRng)
 }
 
-typealias Rand<A> = (RNG) -> Pair<A, RNG>
+typealias State<S, A> = (S) -> Pair<A, S>
+
+typealias Rand<A> = State<RNG, A>
 
 fun <A, B> map(s: Rand<A>, f: (A) -> B): Rand<B> {
     return { rng ->
         val (a, rng2) = s(rng)
         Pair(f(a), rng2)
+    }
+}
+
+fun <A, B> Rand<A>.flatMap(f: (A) -> Rand<B>): Rand<B> {
+    return { rng ->
+        val (a, nextRng) = this(rng)
+        f(a)(nextRng)
+    }
+}
+
+val stringGenerator: Rand<String> = {
+    val next = it.next()
+    next.first.toString() to next.second
+}
+
+val stringListGenerator = {
+    map(stringGenerator) {
+        it.toCharArray()
     }
 }
 
@@ -50,7 +76,7 @@ fun <A> rngTester(rand: Rand<A>) {
 }
 
 val randomDouble = { rng: RNG ->
-    val (value, rng2) = rng.nextInt()
+    val (value, rng2) = rng.next()
     Pair(abs(value.toDouble()) / Int.MAX_VALUE, rng2)
 }
 

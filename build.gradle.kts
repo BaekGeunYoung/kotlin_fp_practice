@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
+    implementation("io.projectreactor:reactor-core:3.3.11.RELEASE")
 }
 
 tasks {
