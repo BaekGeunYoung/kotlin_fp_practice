@@ -7,6 +7,7 @@ import flatMap
 import gorgeousRandomDouble
 import map
 import nonNegativeInt
+import java.util.stream.Stream
 
 
 class Gen<T>(
@@ -19,13 +20,22 @@ class Gen<T>(
         return Gen(newRand)
     }
 
+    fun <U> map(f: (T) -> U): Gen<U> = Gen(rand.map(f))
+
+
     fun listOfN(size: Gen<Int>): Gen<List<T>> {
-        return size.flatMap { listOfN(it, this) }
+        return size.flatMap { listOfN(it) }
     }
+
+    fun listOfN(size: Int): Gen<List<T>> {
+        return listOfN(size, this)
+    }
+
+    fun unsized(): SGen<T> = SGen { this }
 
     companion object {
         fun choose(start: Int, stopExclusive: Int): Gen<Int> {
-            val rand = map(nonNegativeInt) {
+            val rand = nonNegativeInt.map {
                 start + it % (stopExclusive - start)
             }
             return Gen(rand)
@@ -101,4 +111,22 @@ fun main() {
         println(zeroToTwenty.rand(rng).first)
         rng = zeroToTwenty.rand(rng).second
     }
+}
+
+fun <A> forAll(gen: Gen<A>, f:(A) -> Boolean): Prop = TODO()
+
+fun <A> randomStream(g: Gen<A>, rng: RNG): Stream<A> = TODO()
+
+val intList = Gen.choose(0, 100)
+
+val sortedProp = forAll(SGen.listOf(intList)) {
+    val sorted = it.sorted()
+
+    sorted.forEachIndexed { index, i ->
+        if (index != 0) {
+            if (sorted[index - 1] > i) return@forAll false
+        }
+    }
+
+    true
 }

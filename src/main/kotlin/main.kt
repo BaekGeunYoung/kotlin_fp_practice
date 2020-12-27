@@ -34,9 +34,9 @@ typealias State<S, A> = (S) -> Pair<A, S>
 
 typealias Rand<A> = State<RNG, A>
 
-fun <A, B> map(s: Rand<A>, f: (A) -> B): Rand<B> {
+fun <A, B> Rand<A>.map(f: (A) -> B): Rand<B> {
     return { rng ->
-        val (a, rng2) = s(rng)
+        val (a, rng2) = this(rng)
         Pair(f(a), rng2)
     }
 }
@@ -54,12 +54,12 @@ val stringGenerator: Rand<String> = {
 }
 
 val stringListGenerator = {
-    map(stringGenerator) {
+    stringGenerator.map {
         it.toCharArray()
     }
 }
 
-val nonNegativeEven: Rand<Int> = map(nonNegativeInt) { it - it % 2 }
+val nonNegativeEven: Rand<Int> = nonNegativeInt.map { it - it % 2 }
 
 fun <A> rngTester(rand: Rand<A>) {
     val simpleRng = SimpleRNG(42)
@@ -80,7 +80,7 @@ val randomDouble = { rng: RNG ->
     Pair(abs(value.toDouble()) / Int.MAX_VALUE, rng2)
 }
 
-val gorgeousRandomDouble: Rand<Double> = map(nonNegativeInt) { it.toDouble() / Int.MAX_VALUE }
+val gorgeousRandomDouble: Rand<Double> = nonNegativeInt.map { it.toDouble() / Int.MAX_VALUE }
 
 fun <A, B, C> map2(ra: Rand<A>, rb: Rand<B>, f: (A, B) -> C): Rand<C> =
     { rng ->
