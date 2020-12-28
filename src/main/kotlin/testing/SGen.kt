@@ -1,6 +1,5 @@
 package testing
 
-import paralellism.test
 import java.util.stream.IntStream
 import java.util.stream.Stream
 import kotlin.math.min
