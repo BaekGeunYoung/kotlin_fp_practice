@@ -12,7 +12,7 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation("io.projectreactor:reactor-core:3.3.11.RELEASE")
-    implementation("org.funktionale:funktionale-currying:1.2")
+    implementation("io.arrow-kt:arrow-core:0.11.0")
 }
 
 tasks {

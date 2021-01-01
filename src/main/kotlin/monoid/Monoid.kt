@@ -1,5 +1,8 @@
 package monoid
 
+import paralellism.Par
+import paralellism.map2
+import paralellism.unit
 import testing.Gen
 import testing.Prop
 import testing.forAll
@@ -82,6 +85,13 @@ fun <A, B> foldMap(aSeq: List<A>, m: Monoid<B>, f: (A) -> B): B =
         m.op(x, y)
     }
 
+fun <A, B> foldMapV(aSeq: List<A>, m: Monoid<B>, f: (A) -> B): B {
+    val left = foldMapV(aSeq.subList(0, aSeq.size / 2), m, f)
+    val right = foldMapV(aSeq.subList(aSeq.size / 2, aSeq.size), m, f)
+
+    return m.op(left, right)
+}
+
 fun <A, B> foldRight(aSeq: List<A>, z: B, f: (A, B) -> B): B =
     foldMap(aSeq, endoMonoid()) {
         f.curried()(it)
@@ -91,4 +101,24 @@ fun <A, B> ((A, B) -> B).curried(): (A) -> (B) -> B = { a ->
     { b ->
         this(a, b)
     }
+}
+
+fun <A> par(m: Monoid<A>): Monoid<Par<A>> = object : Monoid<Par<A>> {
+    override val zero = unit(m.zero)
+    override fun op(a1: Par<A>, a2: Par<A>): Par<A> {
+        return map2(a1, a2) { a, b ->
+            m.op(a, b)
+        }
+    }
+}
+
+fun <A, B> parFoldMap(aSeq: List<A>, m: Monoid<B>, f: (A) -> B): Par<B> {
+    if (aSeq.size == 1) return unit(f(aSeq[0]))
+
+    val parMonoid = par(m)
+
+    val left = parFoldMap(aSeq.subList(0, aSeq.size / 2), m, f)
+    val right = parFoldMap(aSeq.subList(aSeq.size / 2, aSeq.size), m, f)
+
+    return parMonoid.op(left, right)
 }
