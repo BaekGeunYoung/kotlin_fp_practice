@@ -48,8 +48,49 @@ interface Monad<F>: Functor<F> {
      * => (a => compose(f, g)(a).flatMap(h)(x) == (a => f(a).flatMap(compose(g, h)))(x)
      * => (a => f(a).flatMap(g).flatMap(h))(x) == (a => f(a).flatMap(b => g(b).flatMap(h)))(x)
      * => f(x).flatMap(g).flatMap(h) == f(x).flatMap(b => g(b).flatMap(h))
-     * => X.flatMap(g).flatMap(h) == X.flatMap(a => g(a).flatMap(g))
+     * => X.flatMap(g).flatMap(h) == X.flatMap(a => g(a).flatMap(h))
      */
+
+    /**
+     * 항등법칙의 flatMap을 이용한 표현과 compose를 이용한 표현은 동치이다.
+     *
+     * 증명 :
+     * compose(f, unit) == f
+     * => (a => f(a).flatmap(unit)) == (a => f(a))
+     * => x.flatMap(unit) == x
+     * &
+     * compose(unit, f) == f
+     * => (a => unit(a).flatMap(f)) == (a => f(a))
+     */
+
+    fun <A> join(mma: Kind<F, Kind<F, A>>): Kind<F, A> = mma.flatMap { it }
+
+    /**
+     * 결합법칙의 join, map을 이용한 표현
+     *
+     * compose(f, compose(g, h)) == compose(compose(f, g), h)
+     * (a => join(f(a).map(compose(g, h)))) == (a => join(compose(f, g)(a).map(h)))
+     * (a => join(f(a).map(b => join(g(b).map(h)))) == (a => join(b => join(f(b).map(g))(a).map(h)))
+     * => join(f(a).map(b => join(g(b).map(h))) == join(b => join(f(b).map(g))(a).map(h))
+     *
+     *
+     * x.flatMap(f).flatMap(g) == x.flatMap(a => f(a).flatMap(g))
+     * join(x.map(f)).flatMap(g) == join(x.map(a => f(a).flatMap(g))
+     * join(join(x.map(f)).map(g)) == join(x.map(a => join(f(a).map(g))))
+     *
+     * 항등법칙의 join, map, unit을 이용한 표현
+     * x.flatMap(unit) == x
+     * => join(x.map(unit)) == x
+     * &
+     * unit(x).flatMap(f) == f(x)
+     * => join(unit(x).map(f)) == f(x)
+     */
+
+    fun <A, B> Kind<F, A>.flatMapUsingJoin(f: (A) -> Kind<F, B>): Kind<F, B> = join(this.map(f))
+
+    fun <A, B, C> composeUsingJoin(f: (A) -> Kind<F, B>, g: (B) -> Kind<F, C>): (A) -> Kind<F, C> = {
+        join(f(it).map(g))
+    }
 }
 
 object ListMonad : Monad<ForListK> {
@@ -63,6 +104,12 @@ object OptionMonad : Monad<ForOptionK> {
     override fun <A> unit(a: () -> A): Kind<ForOptionK, A> = OptionK(Optional.of(a()))
 
     override fun <A, B> Kind<ForOptionK, A>.flatMap(f: (A) -> Kind<ForOptionK, B>): Kind<ForOptionK, B> = OptionK(this.fix().option.flatMap { f(it).fix().option })
+}
+
+object IdMonad : Monad<ForIdK> {
+    override fun <A> unit(a: () -> A): Kind<ForIdK, A> = IdK(a())
+
+    override fun <A, B> Kind<ForIdK, A>.flatMap(f: (A) -> Kind<ForIdK, B>): Kind<ForIdK, B> = this.fix().flatMap { f(it).fix() }
 }
 
 fun main() {
@@ -81,4 +128,15 @@ fun main() {
 
     println(listOption.fix().option)
     println(optionFiltered.fix().option)
+
+    val unit: (Int) -> Kind<ForOptionK, Int> = { OptionMonad.unit { it } }
+
+    // 다음 식은 항등식이다.
+    OptionMonad.compose(unit, f) == f
+
+    val res = IdK("hello ").flatMap { a ->
+        IdK("world").flatMap { b ->
+            IdK(a + b)
+        }
+    }
 }

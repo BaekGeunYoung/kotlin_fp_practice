@@ -36,3 +36,13 @@ fun <A> Kind<ForOptionK, A>.fix(): OptionK<A> = this as OptionK<A>
 data class OptionK<T>(val option: Optional<T>) : Kind<ForOptionK, T> {
     fun <B> flatMap(f: (T) -> OptionK<B>): OptionK<B> = OptionK(this.option.flatMap { f(it).option })
 }
+
+class ForIdK private constructor() { companion object }
+
+fun <A> Kind<ForIdK, A>.fix(): IdK<A> = this as IdK<A>
+
+@higherkind
+data class IdK<T>(val value: T) : Kind<ForIdK, T> {
+    fun <B> flatMap(f: (T) -> IdK<B>): IdK<B> = f(value)
+    fun <B> map(f: (T) -> B): IdK<B> = IdK(f(value))
+}
