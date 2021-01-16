@@ -90,13 +90,26 @@ interface Applicative<F> : Functor<F> {
      *
      * == fa
      *    .flatMap(a =>
-     *      fb.flatMap(b => a,b)
+     *      fb.flatMap(b => unit(a,b))
      *        .flatMap(a, b => fc.flatMap(c => unit((a,b),c)))
      *    )
      *
      * == fa.flatMap(a =>
      *      fb.flatMap(b => (a,b).flatMap(a,b => fc.flatMap(c => unit((a,b),c))))
      *    )
+     *
+     * == fa.flatMap(a =>
+     *      fb.flatMap(b =>
+     *          unit(a to b).flatMap(a,b => fc.flatMap(c => unit((a to b) to c)))
+     *      )
+     *    )
+     *
+     * == fa.flatMap(a =>
+     *      fb.flatMap(b =>
+     *          fc.flatMap(c => unit((a to b) to c))
+     *      )
+     *    ) by Monad isomorphism ... 1
+     *
      * &
      * product(fa, product(fb, fc)).map(assoc)
      * == map2(fa, map2(fb, fc)(b, c => (b,c)))(a,(b,c) => a, (b, c)).map(assoc)
@@ -130,12 +143,19 @@ interface Applicative<F> : Functor<F> {
      *    )
      *
      * == fa.flatMap(a =>
-     *      fb.flatMap(b => fc.flatMap(c => unit(b,c)).flatMap(b,c => unit((a,b),c)))
+     *      fb.flatMap(b =>
+     *          fc.flatMap(c => unit(b to c)).flatMap(b,c => unit((a to b) to c))
+     *      )
      *    )
      *
      * == fa.flatMap(a =>
-     *      fb.flatMap(b => (a,b).flatMap(a,b => fc.flatMap(c => unit((a,b),c))))
-     *    )
+     *      fb.flatMap(b =>
+     *          fc.flatMap(c => unit((a to b) to c))
+     *      )
+     *    ) by Monad isomorphism ... 2
+     *
+     * 1 === 2 이므로 applicative의 결합법칙이 모든 Monad에도 성립한다.
+     *
      */
 }
 
