@@ -2,6 +2,8 @@ package applicative
 
 import arrow.Kind
 import arrow.core.curry
+import arrow.core.extensions.map.foldable.foldRight
+import arrow.core.foldRight
 import arrow.core.some
 import monad.Functor
 
@@ -19,6 +21,16 @@ interface Applicative<F> : Functor<F> {
         }
 
     fun <A> sequence(fas: List<Kind<F, A>>): Kind<F, List<A>> = traverse(fas) { it }
+
+    fun <K, V> sequenceMap(ofa: Map<K, Kind<F, V>>): Kind<F, Map<K, V>> =
+        unit { mapOf<K, V>() }.apply {
+            ofa.forEach {
+                map2(this, it.value) { a, b ->
+                    a.toMutableMap()[it.key] = b
+                    a
+                }
+            }
+        }
 
     fun <A> replicateM(n: Int, fa: Kind<F, A>): Kind<F, List<A>> = fa.map { a -> (0 until n).map { a } }
 

@@ -24,7 +24,7 @@ data class ListK<T>(val list: List<T>) : Kind<ForListK, T>, List<T> by list {
     fun <B> flatMap(f: (T) -> ListK<B>): ListK<B> = ListK(this.list.flatMap(f))
 }
 
-class ListFunctor : Functor<ForListK> {
+object ListFunctor : Functor<ForListK> {
     override fun <A, B> Kind<ForListK, A>.map(f: (A) -> B): Kind<ForListK, B> = fix().map(f)
 }
 

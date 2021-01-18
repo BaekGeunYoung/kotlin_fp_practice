@@ -2,6 +2,7 @@ package monoid
 
 import arrow.Kind
 import arrow.core.extensions.list.foldable.foldLeft
+import monad.ForListK
 
 interface Foldable<F> {
     fun <A, B> Kind<F, A>.foldRight(z: B, f: (A, B) -> B): B
@@ -21,13 +22,12 @@ class ListConcatMonoid<T> : Monoid<List<T>> {
 }
 
 
-class ForList private constructor()
-typealias ListOf<A> = Kind<ForList, A>
+typealias ListOf<A> = Kind<ForListK, A>
 
 @Suppress("UNCHECKED_CAST")
 fun <A> ListOf<A>.fix(): List<A> = this as List<A>
 
-object FoldableList : Foldable<ForList> {
+object ListFoldable : Foldable<ForListK> {
     @Suppress("UNCHECKED_CAST")
     fun <A> of(vararg aSeq: A): ListOf<A> {
         val list = aSeq.toList()
@@ -68,7 +68,7 @@ object FoldableList : Foldable<ForList> {
         return acc
     }
 
-    override fun <A> Kind<ForList, A>.toList(): List<A> {
+    override fun <A> Kind<ForListK, A>.toList(): List<A> {
         TODO("Not yet implemented")
     }
 }
@@ -83,7 +83,7 @@ sealed class Tree<A>
 class Leaf<A>(val value: A) : Tree<A>()
 class Branch<A>(val left: Tree<A>, val right: Tree<A>) : Tree<A>()
 
-object FoldableTree {
+object TreeFoldable {
     fun <A, B> Tree<A>.foldRight(z: B, f: (A, B) -> B): B =
         when (this) {
             is Leaf -> f(this.value, z)
@@ -108,7 +108,7 @@ sealed class Option<out A>
 class Some<out A>(val value: A) : Option<A>()
 object None: Option<Nothing>()
 
-object FoldableOption {
+object OptionFoldable {
     fun <A, B> Option<A>.foldRight(z: B, f: (A, B) -> B): B =
         when (this) {
             is None -> z
