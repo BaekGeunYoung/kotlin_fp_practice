@@ -1,7 +1,6 @@
 package monoid
 
 import arrow.Kind
-import arrow.core.extensions.list.foldable.foldLeft
 import monad.ForListK
 
 interface Foldable<F> {
@@ -13,6 +12,10 @@ interface Foldable<F> {
         { a, b -> b.toMutableList().apply { add(a) } }
     )
     fun <A> Kind<F, A>.concatenate(m: Monoid<A>) = this.foldLeft(m.zero) { x, y -> m.op(x, y) }
+
+    // fold 연산으로 map을 구현할 수 없는 이유 (== Foldable이 Functor를 확장할 수 없는 이유)
+    // map은 입력값의 구조를 그대로 유지하는 사상인 반면 fold는 입력값의 구조를 잃어버리는 사상이기 때문에, fold로 map을 구현할 수 없음.
+    // 그렇다면 foldable하지만 functor는 아닌 형식으로 어떤게 있을까
 }
 
 class ListConcatMonoid<T> : Monoid<List<T>> {

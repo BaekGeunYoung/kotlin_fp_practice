@@ -11,6 +11,16 @@ import java.util.*
 interface Traverse<F>: Functor<F>, Foldable<F> {
     fun <G, A, B> Kind<F, A>.traverse(AP: Applicative<G>, f: (A) -> Kind<G, B>): Kind<G, Kind<F, B>>
     fun <G, A> Kind<F, Kind<G, A>>.sequence(AG: Applicative<G>): Kind<G, Kind<F, A>> = traverse(AG, ::identity)
+
+    fun <S, A, B> Kind<F, A>.mapAccum(s: S, f: (A, S) -> Pair<B, S>): Pair<Kind<F, B>, S> = TODO()
+
+    fun <A, B> Kind<F, A>.foldRightUsingMapAccum(z: B, f: (A, B) -> B): B =
+        this.mapAccum(z) { a, s ->
+            Unit to f(a, s)
+        }.second
+
+    fun <G, H, A, B> Kind<F, A>.fuse(GA: Applicative<G>, HA: Applicative<H>, f: (A) -> Kind<G, B>, g: (A) -> Kind<H, B>): Pair<Kind<G, Kind<F, B>>, Kind<H, Kind<F, B>>> =
+        this.traverse(GA, f) to this.traverse(HA, g)
 }
 
 object ListTraverse : Traverse<ForListK>, Functor<ForListK> by ListFunctor, Foldable<ForListK> by ListFoldable {

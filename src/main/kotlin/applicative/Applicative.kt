@@ -6,6 +6,7 @@ import arrow.core.extensions.map.foldable.foldRight
 import arrow.core.foldRight
 import arrow.core.some
 import monad.Functor
+import monoid.Monoid
 
 interface Applicative<F> : Functor<F> {
     fun <A> unit(a: () -> A): Kind<F, A>
@@ -193,3 +194,16 @@ fun <A, B, C, D> ((A, B, C) -> D).curry(): (A) -> (B) -> (C) -> D =
             }
         }
     }
+
+// foldable하지만 functor는 아닌 예시
+class Iteration<A>(
+    val a: A,
+    val f: (A) -> A,
+    val n: Int
+) {
+    fun <B> iterate(n: Int, b: B, c: A, g: (A) -> B): B = if (n <= 0) b else iterate(n-1, g(c), f(a), g)
+
+    fun <B> foldMap(g: (A) -> B, m: Monoid<B>): B = iterate(n, m.zero, a, g)
+
+    // map을 구현할 수 없는 이유 : f: (A) -> A 를 B에 대한 함수로 치환할 방법이 없음
+}
