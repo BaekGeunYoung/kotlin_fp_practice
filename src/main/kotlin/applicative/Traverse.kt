@@ -46,7 +46,7 @@ object OptionTraverse : Traverse<ForOptionK> {
                 OptionK(Optional.of(it))
             }
         } else {
-            unit { OptionK(Optional.empty()) }
+            unit { OptionK(Optional.empty<B>()) }
         }
     }
 

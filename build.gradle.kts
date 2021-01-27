@@ -13,6 +13,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation("io.projectreactor:reactor-core:3.3.11.RELEASE")
     implementation("io.arrow-kt:arrow-core:0.11.0")
+    implementation("io.arrow-kt:arrow-fx:0.11.0")
     implementation("io.arrow-kt:arrow-mtl:0.11.0")
     implementation("io.arrow-kt:arrow-mtl-data:0.11.0")
 }
